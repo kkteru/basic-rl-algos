@@ -3,8 +3,25 @@ import pdb
 
 import gym
 import numpy as np
+import matplotlib.pyplot as plt
 
 env = gym.make('Pendulum-v0')
+
+
+def get_new_reset(env):
+
+    def reset():
+        env.state = np.array([0, 0])
+        env.last_u = None
+        return env._get_obs()
+
+    return reset
+
+
+env.env.reset = get_new_reset(env.env)
+
+
+# pdb.set_trace()
 
 
 class Policy():
@@ -30,7 +47,7 @@ class Policy():
         else:
             s = -1
 
-        return np.array([s * w / abs(w) * self.t])
+        return np.array([s * (w + 1e-9) / (abs(w) + 1e-9) * self.t])
 
 
 class Model():
@@ -48,6 +65,7 @@ class Model():
         self.reset_weights()
 
     def reset_weights(self):
+        np.random.seed(42)
         self.weights = np.random.rand(self.in_size, 1) * (0.002) - 0.001
 
     def forward(self, inp):
@@ -113,6 +131,8 @@ class ReturnCalculator():
 # TODO: Change this
 inp_size = 500
 alpha = 0.1
+gamma = 0.9
+decay_factor = 0.5
 
 pol = Policy(0.9, 1)
 disp_vector = np.array([1, 1])
@@ -120,18 +140,35 @@ tile = TileCoding(5, 10, disp_vector)
 model = Model(inp_size)
 ret = ReturnCalculator()
 
+val = []
+
 for _ in range(200):
     # TODO: Change this to initialize the env from (0, 0) every episode
+
+    # pdb.set_trace()
     state = env.reset()
+    # env.render()
+    state_feat = tile.get_features(state)
+    val.append(model.forward(state_feat))
+    trace = np.zeros(state_feat.shape)
     done = False
 
     # episode
     while done is False:
         action = pol.get_action(state[2])
-        state, reward, done, info = env.step(action)
-        state_feat = tile.get_features(state)
-        pdb.set_trace()
-        val = model.forward(state_feat)
-        # target = ret.get_return()
+        next_state, reward, done, info = env.step(action)
+        # env.render()
+        next_state_feat = tile.get_features(next_state)
+        # pdb.set_trace()
+        delta = reward + gamma * model.forward(next_state_feat) - model.forward(state_feat)
+        trace = gamma * decay_factor * trace + state_feat
 
         # model.weights = model.weights + (alpha / tile.n_tiles) * (target - val) * state_feat
+        model.weights = model.weights + (alpha / tile.n_tiles) * delta * trace
+
+        state = next_state
+        state_feat = next_state_feat
+
+fig = plt.figure(figsize=(15, 6))
+plt.plot(val)
+plt.title('Value of state (0, 0)')
