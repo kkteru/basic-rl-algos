@@ -193,9 +193,9 @@ for l, decay_factor in enumerate(decay_factor_list):
                 # episode
                 states, rewards = generate_episode(env, state, pol)
                 returns = np.zeros(len(rewards) + 1)
-                for i in range(len(rewards)):
-                    returns[-i - 2] = (gamma * returns[-i - 1] + rewards[-i - 1])
-                for state, ret in zip(states, returns):
+                for idx in range(len(rewards)):
+                    returns[-idx - 2] = (gamma * returns[-idx - 1] + rewards[-idx - 1])
+                for state, ret in zip(states[:-1], returns[:-1]):
                     state_feat = tile.get_features(state)
                     delta = ret - model.forward(state_feat)
                     trace = gamma * decay_factor * trace + state_feat
