@@ -136,7 +136,7 @@ class ReturnCalculator():
 
 
 inp_size = 500
-alpha_list = [0.25]
+alpha_list = [0.25, 0.125, 0.0625]
 gamma = 0.9
 decay_factor = 0.3
 
@@ -146,7 +146,7 @@ tile = TileCoding(5, 10, disp_vector)
 model = Model(inp_size)
 ret = ReturnCalculator()
 
-value = np.zeros(len(alpha_list))
+value = np.zeros((len(alpha_list), 200))
 
 for k, alpha in enumerate(alpha_list):
 
@@ -185,8 +185,8 @@ for k, alpha in enumerate(alpha_list):
                 state = next_state
                 state_feat = next_state_feat
     #pdb.set_trace()
-    value[k] = np.mean(val, axis=0)[0]
-
+    value[k] = np.mean(val, axis=0)
+#50pdb.set_trace()
 leg = []
 fig = plt.figure(figsize=(15, 6))
 for t, alpha in enumerate(alpha_list):
