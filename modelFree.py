@@ -14,6 +14,8 @@ params = parser.parse_args()
 
 env = gym.make('Pendulum-v0')
 
+# monkey patching reset() to always start from (0, 0)
+
 
 def get_new_reset(env):
 
@@ -49,7 +51,7 @@ class Policy():
 
         w: Angular velocity of the pendulum
         '''
-        if random.random() < 0.9:
+        if random.random() < p:
             s = 1
         else:
             s = -1
@@ -135,10 +137,33 @@ class ReturnCalculator():
         pass
 
 
+def generate_episode(env, init_state, pol):
+    '''
+    Generates an episode.
+
+    env: the environment to generate the episode from
+    init_state: starting state of the episode
+    pol: polic to generate the episode from
+    '''
+
+    states = [init_state]
+    rewards = []
+
+    done = False
+
+    while done is False:
+        action = pol.get_action(states[-1][2])
+        state, reward, done, info = env.step(action)
+        states.append(state)
+        rewards.append(reward)
+
+    return states, rewards
+
+
 inp_size = 500
 alpha_list = [0.25, 0.125, 0.0625]
 gamma = 0.9
-decay_factor = 0.3
+decay_factor_list = [0, 0.3, 0.7, 0.9, 1]
 
 pol = Policy(0.9, 1)
 disp_vector = np.array([1, 1])
@@ -148,51 +173,54 @@ ret = ReturnCalculator()
 
 value = np.zeros((len(alpha_list), 200))
 
-for k, alpha in enumerate(alpha_list):
+for l, decay_factor in enumerate(decay_factor_list):
+    for k, alpha in enumerate(alpha_list):
 
-    val = np.zeros((10, 200))
+        val = np.zeros((10, 200))
 
-    for i in range(10):
+        for i in range(10):
 
-        model.reset_weights(params.seed + i)
+            model.reset_weights(params.seed + i)
 
-        for j in range(200):
-            # TODO: Change this to initialize the env from (0, 0) every episode
+            for j in range(200):
+                state = env.reset()
+                state_feat = tile.get_features(state)
+                val[i][j] = model.forward(state_feat)
+                print('Run %d for lambda = %.2f, alpha = %.2f; Value = %.2f\r' % (i, decay_factor, alpha, val[i][j]), end="")
+                trace = np.zeros(state_feat.shape)
+                done = False
 
-            # pdb.set_trace()
-            state = env.reset()
-            # env.render()
-            state_feat = tile.get_features(state)
-            val[i][j] = model.forward(state_feat)
-            # pdb.set_trace()
-            print(i, val[i][j])
-            trace = np.zeros(state_feat.shape)
-            done = False
+                # episode
+                states, rewards = generate_episode(env, state, pol)
+                for next_state, reward in zip(states[1:], rewards):
+                    next_state_feat = tile.get_features(next_state)
+                    delta = reward + gamma * model.forward(next_state_feat) - model.forward(state_feat)
+                    trace = gamma * decay_factor * trace + state_feat
 
-            # episode
-            while done is False:
-                action = pol.get_action(state[2])
-                next_state, reward, done, info = env.step(action)
-                # env.render()
-                next_state_feat = tile.get_features(next_state)
-                # pdb.set_trace()
-                delta = reward + gamma * model.forward(next_state_feat) - model.forward(state_feat)
-                trace = gamma * decay_factor * trace + state_feat
+                    model.weights = model.weights + (alpha / tile.n_tilings) * delta * trace
 
-                # model.weights = model.weights + (alpha / tile.n_tiles) * (target - val) * state_feat
-                model.weights = model.weights + (alpha / tile.n_tilings) * delta * trace
+                    state_feat = next_state_feat
 
-                state = next_state
-                state_feat = next_state_feat
-    #pdb.set_trace()
-    value[k] = np.mean(val, axis=0)
-#50pdb.set_trace()
-leg = []
-fig = plt.figure(figsize=(15, 6))
-for t, alpha in enumerate(alpha_list):
-    plt.plot(value[t])
-    leg = leg + [str(alpha)]
-plt.legend(leg)
-plt.title('Value of state (0, 0)')
+                # while done is False:
+                #     action = pol.get_action(state[2])
+                #     next_state, reward, done, info = env.step(action)
+                #     next_state_feat = tile.get_features(next_state)
+                #     delta = reward + gamma * model.forward(next_state_feat) - model.forward(state_feat)
+                #     trace = gamma * decay_factor * trace + state_feat
 
-plt.savefig('l%.1f.png' % (decay_factor), dpi=fig.dpi)
+                #     model.weights = model.weights + (alpha / tile.n_tilings) * delta * trace
+
+                #     state = next_state
+                #     state_feat = next_state_feat
+        value[k] = np.mean(val, axis=0)
+        print('Value of state (0, 0) for lambda = %.2f, alpha = %.2f = %.2f' % (decay_factor, alpha, value[k][-1]), end="")
+
+    leg = []
+    fig = plt.figure(figsize=(15, 6))
+    for t, alpha in enumerate(alpha_list):
+        plt.plot(value[t])
+        leg = leg + [str(alpha)]
+    plt.legend(leg)
+    plt.title('Value of state (0, 0) with lambda %.2f' % decay_factor)
+
+    plt.savefig('l%.1f.png' % (decay_factor), dpi=fig.dpi)
