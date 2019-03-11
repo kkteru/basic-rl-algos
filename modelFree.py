@@ -150,7 +150,7 @@ value = np.zeros(len(alpha_list))
 
 for k, alpha in enumerate(alpha_list):
 
-    val = np.zeros(10, 200)
+    val = np.zeros((10, 200))
 
     for i in range(10):
 
@@ -184,8 +184,8 @@ for k, alpha in enumerate(alpha_list):
 
                 state = next_state
                 state_feat = next_state_feat
-
-    value[k] = np.mean(val, axis=0)
+    #pdb.set_trace()
+    value[k] = np.mean(val, axis=0)[0]
 
 leg = []
 fig = plt.figure(figsize=(15, 6))
