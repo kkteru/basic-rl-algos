@@ -71,8 +71,8 @@ class Model():
 
         self.reset_weights()
 
-    def reset_weights(self):
-        np.random.seed(params.seed)
+    def reset_weights(self, seed=params.seed):
+        np.random.seed(seed)
         self.weights = np.random.rand(self.in_size) * (0.002) - 0.001
 
     def forward(self, inp):
@@ -135,9 +135,8 @@ class ReturnCalculator():
         pass
 
 
-# TODO: Change this
 inp_size = 500
-alpha = 0.25
+alpha_list = [0.25]
 gamma = 0.9
 decay_factor = 0.3
 
@@ -147,38 +146,53 @@ tile = TileCoding(5, 10, disp_vector)
 model = Model(inp_size)
 ret = ReturnCalculator()
 
-val = []
+value = np.zeros(len(alpha_list))
 
-for _ in range(200):
-    # TODO: Change this to initialize the env from (0, 0) every episode
+for k, alpha in enumerate(alpha_list):
 
-    # pdb.set_trace()
-    state = env.reset()
-    # env.render()
-    state_feat = tile.get_features(state)
-    val.append(model.forward(state_feat))
-    # pdb.set_trace()
-    print(val[-1])
-    trace = np.zeros(state_feat.shape)
-    done = False
+    val = np.zeros(10, 200)
 
-    # episode
-    while done is False:
-        action = pol.get_action(state[2])
-        next_state, reward, done, info = env.step(action)
-        # env.render()
-        next_state_feat = tile.get_features(next_state)
-        # pdb.set_trace()
-        delta = reward + gamma * model.forward(next_state_feat) - model.forward(state_feat)
-        trace = gamma * decay_factor * trace + state_feat
+    for i in range(10):
 
-        # model.weights = model.weights + (alpha / tile.n_tiles) * (target - val) * state_feat
-        model.weights = model.weights + (alpha / tile.n_tilings) * delta * trace
+        model.reset_weights(params.seed + i)
 
-        state = next_state
-        state_feat = next_state_feat
+        for j in range(200):
+            # TODO: Change this to initialize the env from (0, 0) every episode
 
+            # pdb.set_trace()
+            state = env.reset()
+            # env.render()
+            state_feat = tile.get_features(state)
+            val[i][j] = model.forward(state_feat)
+            # pdb.set_trace()
+            print(i, val[i][j])
+            trace = np.zeros(state_feat.shape)
+            done = False
+
+            # episode
+            while done is False:
+                action = pol.get_action(state[2])
+                next_state, reward, done, info = env.step(action)
+                # env.render()
+                next_state_feat = tile.get_features(next_state)
+                # pdb.set_trace()
+                delta = reward + gamma * model.forward(next_state_feat) - model.forward(state_feat)
+                trace = gamma * decay_factor * trace + state_feat
+
+                # model.weights = model.weights + (alpha / tile.n_tiles) * (target - val) * state_feat
+                model.weights = model.weights + (alpha / tile.n_tilings) * delta * trace
+
+                state = next_state
+                state_feat = next_state_feat
+
+    value[k] = np.mean(val, axis=0)
+
+leg = []
 fig = plt.figure(figsize=(15, 6))
-plt.plot(val)
+for t, alpha in enumerate(alpha_list):
+    plt.plot(value[t])
+    leg = leg + [str(alpha)]
+plt.legend(leg)
 plt.title('Value of state (0, 0)')
-plt.savefig('l%.1fa%.1f.png' % (decay_factor, alpha), dpi=fig.dpi)
+
+plt.savefig('l%.1f.png' % (decay_factor), dpi=fig.dpi)
