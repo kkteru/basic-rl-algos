@@ -14,6 +14,7 @@ params = parser.parse_args()
 
 env = gym.make('Pendulum-v0')
 
+
 def get_new_reset(env):
 
     def reset():
@@ -136,9 +137,9 @@ class ReturnCalculator():
 
 # TODO: Change this
 inp_size = 500
-alpha = 0.1
+alpha = 0.25
 gamma = 0.9
-decay_factor = 0.5
+decay_factor = 0.3
 
 pol = Policy(0.9, 1)
 disp_vector = np.array([1, 1])
@@ -156,7 +157,7 @@ for _ in range(200):
     # env.render()
     state_feat = tile.get_features(state)
     val.append(model.forward(state_feat))
-    #pdb.set_trace()
+    # pdb.set_trace()
     print(val[-1])
     trace = np.zeros(state_feat.shape)
     done = False
@@ -172,7 +173,7 @@ for _ in range(200):
         trace = gamma * decay_factor * trace + state_feat
 
         # model.weights = model.weights + (alpha / tile.n_tiles) * (target - val) * state_feat
-        model.weights = model.weights + (alpha / tile.n_tiles) * delta * trace
+        model.weights = model.weights + (alpha / tile.n_tilings) * delta * trace
 
         state = next_state
         state_feat = next_state_feat
