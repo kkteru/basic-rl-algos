@@ -1,12 +1,18 @@
 import random
 import pdb
+import argparse
 
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
 
-env = gym.make('Pendulum-v0')
+parser = argparse.ArgumentParser()
 
+parser.add_argument("--seed", type=int, default=42,
+                    help="Random seed for weights initialization")
+params = parser.parse_args()
+
+env = gym.make('Pendulum-v0')
 
 def get_new_reset(env):
 
@@ -60,13 +66,13 @@ class Model():
         in_size: the size of the state features.
         '''
         self.in_size = in_size
-        self.weights = np.empty([in_size, 1])
+        self.weights = np.empty([in_size])
 
         self.reset_weights()
 
     def reset_weights(self):
-        np.random.seed(42)
-        self.weights = np.random.rand(self.in_size, 1) * (0.002) - 0.001
+        np.random.seed(params.seed)
+        self.weights = np.random.rand(self.in_size) * (0.002) - 0.001
 
     def forward(self, inp):
         return np.dot(inp, self.weights)
@@ -150,6 +156,8 @@ for _ in range(200):
     # env.render()
     state_feat = tile.get_features(state)
     val.append(model.forward(state_feat))
+    #pdb.set_trace()
+    print(val[-1])
     trace = np.zeros(state_feat.shape)
     done = False
 
@@ -172,3 +180,4 @@ for _ in range(200):
 fig = plt.figure(figsize=(15, 6))
 plt.plot(val)
 plt.title('Value of state (0, 0)')
+plt.savefig('l%.1fa%.1f.png' % (decay_factor, alpha), dpi=fig.dpi)
