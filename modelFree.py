@@ -163,7 +163,7 @@ def generate_episode(env, init_state, pol):
 inp_size = 500
 alpha_list = [0.25, 0.125, 0.0625]
 gamma = 0.9
-decay_factor_list = [0, 0.3, 0.7, 0.9, 1]
+decay_factor_list = [0]
 
 pol = Policy(0.9, 1)
 disp_vector = np.array([1, 1])
@@ -192,14 +192,15 @@ for l, decay_factor in enumerate(decay_factor_list):
 
                 # episode
                 states, rewards = generate_episode(env, state, pol)
-                for next_state, reward in zip(states[1:], rewards):
-                    next_state_feat = tile.get_features(next_state)
-                    delta = reward + gamma * model.forward(next_state_feat) - model.forward(state_feat)
+                returns = np.zeros(len(rewards) + 1)
+                for i in range(len(rewards)):
+                    returns[-i - 2] = (gamma * returns[-i - 1] + rewards[-i - 1])
+                for state, ret in zip(states, returns):
+                    state_feat = tile.get_features(state)
+                    delta = ret - model.forward(state_feat)
                     trace = gamma * decay_factor * trace + state_feat
 
                     model.weights = model.weights + (alpha / tile.n_tilings) * delta * trace
-
-                    state_feat = next_state_feat
 
                 # while done is False:
                 #     action = pol.get_action(state[2])
@@ -223,4 +224,4 @@ for l, decay_factor in enumerate(decay_factor_list):
     plt.legend(leg)
     plt.title('Value of state (0, 0) with lambda %.2f' % decay_factor)
 
-    plt.savefig('l%.1f.png' % (decay_factor), dpi=fig.dpi)
+    plt.savefig('mc_l%.1f.png' % (decay_factor), dpi=fig.dpi)
