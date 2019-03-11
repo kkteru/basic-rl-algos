@@ -51,7 +51,7 @@ class Policy():
 
         w: Angular velocity of the pendulum
         '''
-        if random.random() < p:
+        if random.random() < self.p:
             s = 1
         else:
             s = -1
@@ -214,7 +214,7 @@ for l, decay_factor in enumerate(decay_factor_list):
                 #     state = next_state
                 #     state_feat = next_state_feat
         value[k] = np.mean(val, axis=0)
-        print('Value of state (0, 0) for lambda = %.2f, alpha = %.2f = %.2f' % (decay_factor, alpha, value[k][-1]), end="")
+        print('Value of state (0, 0) for lambda = %.2f, alpha = %.2f = %.2f\n' % (decay_factor, alpha, value[k][-1]), end="")
 
     leg = []
     fig = plt.figure(figsize=(15, 6))
