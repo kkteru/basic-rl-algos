@@ -222,6 +222,6 @@ for l, decay_factor in enumerate(decay_factor_list):
         plt.plot(value[t])
         leg = leg + [str(alpha)]
     plt.legend(leg)
-    plt.title('Value of state (0, 0) with lambda %.2f' % decay_factor)
+    plt.title('Value of state (0, 0) with Gradient Monte Carlo Algorithm')
 
     plt.savefig('mc_l%.1f.png' % (decay_factor), dpi=fig.dpi)
