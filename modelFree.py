@@ -51,7 +51,7 @@ class Policy():
 
         w: Angular velocity of the pendulum
         '''
-        if random.random() < p:
+        if random.random() < self.p:
             s = 1
         else:
             s = -1
@@ -197,7 +197,7 @@ for l, decay_factor in enumerate(decay_factor_list):
                     delta = reward + gamma * model.forward(next_state_feat) - model.forward(state_feat)
                     trace = gamma * decay_factor * trace + state_feat
 
-                    model.weights = model.weights + (alpha / tile.n_tilings) * delta * trace
+                    model.weights = model.weights + (alpha/tile.n_tilings) * delta * trace
 
                     state_feat = next_state_feat
 
@@ -213,7 +213,7 @@ for l, decay_factor in enumerate(decay_factor_list):
                 #     state = next_state
                 #     state_feat = next_state_feat
         value[k] = np.mean(val, axis=0)
-        print('Value of state (0, 0) for lambda = %.2f, alpha = %.2f = %.2f' % (decay_factor, alpha, value[k][-1]), end="")
+        print('Value of state (0, 0) for lambda = %.2f, alpha = %.2f = %.2f\n' % (decay_factor, alpha, value[k][-1]), end="")
 
     leg = []
     fig = plt.figure(figsize=(15, 6))
