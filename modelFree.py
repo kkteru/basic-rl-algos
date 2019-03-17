@@ -166,7 +166,7 @@ gamma = 0.9
 decay_factor_list = [0]
 
 pol = Policy(0.9, 1)
-disp_vector = np.array([1, 1])
+disp_vector = np.array([1, 2])
 tile = TileCoding(5, 10, disp_vector)
 model = Model(inp_size)
 ret = ReturnCalculator()
@@ -202,17 +202,6 @@ for l, decay_factor in enumerate(decay_factor_list):
 
                     model.weights = model.weights + (alpha / tile.n_tilings) * delta * trace
 
-                # while done is False:
-                #     action = pol.get_action(state[2])
-                #     next_state, reward, done, info = env.step(action)
-                #     next_state_feat = tile.get_features(next_state)
-                #     delta = reward + gamma * model.forward(next_state_feat) - model.forward(state_feat)
-                #     trace = gamma * decay_factor * trace + state_feat
-
-                #     model.weights = model.weights + (alpha / tile.n_tilings) * delta * trace
-
-                #     state = next_state
-                #     state_feat = next_state_feat
         value[k] = np.mean(val, axis=0)
         print('Value of state (0, 0) for lambda = %.2f, alpha = %.2f = %.2f\n' % (decay_factor, alpha, value[k][-1]), end="")
 
