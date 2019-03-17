@@ -166,7 +166,7 @@ gamma = 0.9
 decay_factor_list = [0, 0.3, 0.7, 0.9, 1]
 
 pol = Policy(0.9, 1)
-disp_vector = np.array([1, 2])
+disp_vector = np.array([1, 1])
 tile = TileCoding(5, 10, disp_vector)
 model = Model(inp_size)
 ret = ReturnCalculator()
@@ -216,7 +216,7 @@ for l, decay_factor in enumerate(decay_factor_list):
         print('Value of state (0, 0) for lambda = %.2f, alpha = %.2f = %.2f\n' % (decay_factor, alpha, value[k][-1]), end="")
 
     leg = []
-    fig = plt.figure(figsize=(15, 6))
+    fig = plt.figure(figsize=(8, 6))
     for t, alpha in enumerate(alpha_list):
         plt.plot(value[t])
         leg = leg + [str(alpha)]
