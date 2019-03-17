@@ -166,7 +166,7 @@ gamma = 0.9
 decay_factor_list = [0]
 
 pol = Policy(0.9, 1)
-disp_vector = np.array([1, 2])
+disp_vector = np.array([1, 1])
 tile = TileCoding(5, 10, disp_vector)
 model = Model(inp_size)
 ret = ReturnCalculator()
