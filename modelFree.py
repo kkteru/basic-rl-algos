@@ -206,7 +206,7 @@ for l, decay_factor in enumerate(decay_factor_list):
         print('Value of state (0, 0) for lambda = %.2f, alpha = %.2f = %.2f\n' % (decay_factor, alpha, value[k][-1]), end="")
 
     leg = []
-    fig = plt.figure(figsize=(15, 6))
+    fig = plt.figure(figsize=(8, 6))
     for t, alpha in enumerate(alpha_list):
         plt.plot(value[t])
         leg = leg + [str(alpha)]
