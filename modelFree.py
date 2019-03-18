@@ -197,21 +197,10 @@ for l, decay_factor in enumerate(decay_factor_list):
                     delta = reward + gamma * model.forward(next_state_feat) - model.forward(state_feat)
                     trace = gamma * decay_factor * trace + state_feat
 
-                    model.weights = model.weights + (alpha/tile.n_tilings) * delta * trace
+                    model.weights = model.weights + (alpha / tile.n_tilings) * delta * trace
 
                     state_feat = next_state_feat
 
-                # while done is False:
-                #     action = pol.get_action(state[2])
-                #     next_state, reward, done, info = env.step(action)
-                #     next_state_feat = tile.get_features(next_state)
-                #     delta = reward + gamma * model.forward(next_state_feat) - model.forward(state_feat)
-                #     trace = gamma * decay_factor * trace + state_feat
-
-                #     model.weights = model.weights + (alpha / tile.n_tilings) * delta * trace
-
-                #     state = next_state
-                #     state_feat = next_state_feat
         value[k] = np.mean(val, axis=0)
         print('Value of state (0, 0) for lambda = %.2f, alpha = %.2f = %.2f\n' % (decay_factor, alpha, value[k][-1]), end="")
 
